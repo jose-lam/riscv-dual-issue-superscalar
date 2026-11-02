@@ -5,10 +5,12 @@ module regfile(input  clk,
                output [31:0] rd1, rd2); 
 
   reg [31:0] rf[31:0]; 
+  
+  initial rf[0] = 32'b0;
 
   // write third port on rising edge of clock (A3/WD3/WE3)
-  always @(posedge clk) begin 
-    if (we3) rf[a3] <= wd3; 
+  always @(negedge clk) begin 
+    if (we3 && a3 != 0) rf[a3] <= wd3; 
   end
   
   // read two ports combinationally (A1/RD1, A2/RD2)

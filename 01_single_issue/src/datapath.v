@@ -5,41 +5,71 @@ module datapath(input  clk, reset,
                 input  [1:0]  ImmSrc, 
                 input  [2:0]  ALUControl,
                 output Zero,
-                output [31:0] PC,
-                input  [31:0] Instr,
-                output [31:0] ALUResult, WriteData, 
-                input  [31:0] ReadData);
+                output [31:0] PCF,
+                input  [31:0] InstrF,
+                output [31:0] InstrD, InstrE, InstrM, InstrW, ALUResultM, WriteDataM, 
+                input  [31:0] ReadDataM,
+                output [4:0]  RdM, RdW,
+                input  [1:0]  ForwardAE, ForwardBE,
+                input  StallF, StallD, FlushE, FlushD);
   
   localparam WIDTH = 32; // Define a local parameter for bus width
 
-  wire [31:0] PCNext, PCPlus4, PCTarget; 
-  wire [31:0] ImmExt; 
-  wire [31:0] SrcA, SrcB; 
-  wire [31:0] Result; 
+  wire [31:0] PCNext, PCPlus4F, PCTargetE;
+  wire [31:0] PCD, PCPlus4D; 
+  wire [31:0] ImmExtD, RD2D; 
+  wire [31:0] RD1D, SrcBE; 
+  wire [31:0] SrcAE, WriteDataE, PCE, ImmExtE, PCPlus4E, ALUResultE, RD1E, RD2E;
+  wire [31:0] PCPlus4M;
+  wire [31:0] ResultW, ALUResultW, ReadDataW, PCPlus4W; 
+  wire [4:0]  RdE;
 
   // next PC logic
-  flopr #(WIDTH) pcreg(
+  floperc #(WIDTH) pcreg(
     .clk(clk), 
     .reset(reset), 
+    .en(~StallF),
+    .clear(1'b0),
     .d(PCNext), 
-    .q(PC)
+    .q(PCF)
   ); 
+  
+    // Fetch -> Decode  (32+32+32 = 96)
+  floperc #(96) regFD(clk, reset, ~StallD, FlushD,
+    {InstrF, PCF, PCPlus4F},
+    {InstrD, PCD, PCPlus4D});
+
+  // Decode -> Execute  (32+32+32+5+32+32+32 = 197)
+  floperc #(197) regDE(clk, reset, 1'b1, FlushE,
+    {RD1D, RD2D, PCD, InstrD[11:7], ImmExtD, PCPlus4D, InstrD},
+    {RD1E, RD2E, PCE, RdE,          ImmExtE, PCPlus4E, InstrE});
+
+  // Execute -> Memory  (32+32+5+32+32 = 133)
+  flopr #(133) regEM(clk, reset,
+    {ALUResultE, WriteDataE, RdE, PCPlus4E, InstrE},
+    {ALUResultM, WriteDataM, RdM, PCPlus4M, InstrM});
+
+  // Memory -> Writeback  (32+32+5+32+32 = 133)
+  flopr #(133) regMW(clk, reset,
+    {ALUResultM, ReadDataM, RdM, PCPlus4M, InstrM},
+    {ALUResultW, ReadDataW, RdW, PCPlus4W, InstrW});
+  
 
   adder       pcadd4(
-    .a(PC), 
+    .a(PCF), 
     .b({WIDTH{1'b0}} + 4), // Using WIDTH parameter for constant 4
-    .y(PCPlus4)
+    .y(PCPlus4F)
   ); 
 
   adder       pcaddbranch(
-    .a(PC), 
-    .b(ImmExt), 
-    .y(PCTarget)
+    .a(PCE), 
+    .b(ImmExtE), 
+    .y(PCTargetE)
   ); 
 
   mux2 #(WIDTH)  pcmux(
-    .d0(PCPlus4), 
-    .d1(PCTarget), 
+    .d0(PCPlus4F), 
+    .d1(PCTargetE), 
     .s(PCSrc), 
     .y(PCNext)
   ); 
@@ -48,41 +78,57 @@ module datapath(input  clk, reset,
   regfile     rf(
     .clk(clk), 
     .we3(RegWrite), 
-    .a1(Instr[19:15]), 
-    .a2(Instr[24:20]), 
-    .a3(Instr[11:7]), 
-    .wd3(Result), 
-    .rd1(SrcA), 
-    .rd2(WriteData)
+    .a1(InstrD[19:15]), 
+    .a2(InstrD[24:20]), 
+    .a3(RdW), 
+    .wd3(ResultW), 
+    .rd1(RD1D), 
+    .rd2(RD2D)
   ); 
 
   extend      ext(
-    .instr(Instr[31:7]), 
+    .instr(InstrD[31:7]), 
     .immsrc(ImmSrc), 
-    .immext(ImmExt)
+    .immext(ImmExtD)
   ); 
+  
+  mux3 #(WIDTH)  srcamuxE(
+    .d0(RD1E),
+    .d1(ResultW),
+    .d2(ALUResultM),
+    .s(ForwardAE),
+    .y(SrcAE)
+  );
+  
+  mux3 #(WIDTH)  srcbmuxE(
+    .d0(RD2E),
+    .d1(ResultW),
+    .d2(ALUResultM),
+    .s(ForwardBE),
+    .y(WriteDataE)
+  );
 
   // ALU logic
   mux2 #(WIDTH)  srcbmux(
-    .d0(WriteData), 
-    .d1(ImmExt), 
+    .d0(WriteDataE), 
+    .d1(ImmExtE), 
     .s(ALUSrc), 
-    .y(SrcB)
+    .y(SrcBE)
   ); 
 
   alu         alu(
-    .a(SrcA), 
-    .b(SrcB), 
+    .a(SrcAE), 
+    .b(SrcBE), 
     .alucontrol(ALUControl), 
-    .result(ALUResult), 
+    .result(ALUResultE), 
     .zero(Zero)
   ); 
 
   mux3 #(WIDTH)  resultmux(
-    .d0(ALUResult), 
-    .d1(ReadData), 
-    .d2(PCPlus4), 
+    .d0(ALUResultW), 
+    .d1(ReadDataW), 
+    .d2(PCPlus4W), 
     .s(ResultSrc), 
-    .y(Result)
+    .y(ResultW)
   ); 
 endmodule
