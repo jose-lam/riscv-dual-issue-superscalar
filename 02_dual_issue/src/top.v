@@ -2,7 +2,8 @@ module top(input  clk, reset,
            output [31:0] WriteData, DataAdr, 
            output MemWrite);
   
-  wire [31:0] PC, Instr, ReadData; 
+  wire [31:0] PC, ReadData; 
+  wire [63:0] Instr;
   
   // instantiate processor and memories
   riscvsingle rvsingle(
