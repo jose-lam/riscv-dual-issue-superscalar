@@ -18,8 +18,3 @@ ffc00193 // 08: addi x3,x0,-4
 00208463 // 44: beq  x1,x2,+8
 00100893 // 48: addi x17,x0,1
 01078933 // 4c: add  x18,x15,x16
-00000063 // 50: beq  x0,x0,0
-00000013 // relleno (nop)
-00000013 // relleno (nop)
-00000013 // relleno (nop)
-00000013 // relleno (nop)
