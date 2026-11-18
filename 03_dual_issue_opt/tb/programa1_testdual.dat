@@ -1,0 +1,16 @@
+00500093 // addi x1, x0, 5    # Carga el valor 5 en x1 (x1 = 0 + 5)
+00700113 // addi x2, x0, 7    # Carga el valor 7 en x2 (x2 = 0 + 7)
+00000013 // addi x0, x0, 0    # NOP (Sin operación / Retardo de pipeline)
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+002081B3 // add  x3, x1, x2   # Suma x1 + x2 y guarda en x3 (x3 = 5 + 7 = 12)
+40110233 // sub  x4, x2, x1   # Resta x2 - x1 y guarda en x4 (x4 = 7 - 5 = 2)
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP
+00000013 // addi x0, x0, 0    # NOP

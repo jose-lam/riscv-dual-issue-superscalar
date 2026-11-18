@@ -6,6 +6,8 @@
 //  - Criterio de medicion IDENTICO al del Dual-Issue:
 //      cycles  = flancos de reloj con reset=0 hasta (e incluyendo) el ciclo en que HALT esta en W
 //      retired = instrucciones no nulas observadas en W (incluye HALT; las burbujas valen 0x00000000)
+//      cycles_nofin  = ciclos hasta el ultimo ciclo en que se retira una instruccion distinta de HALT
+//                      (excluye el bucle final "fin: jal x0, fin"); retired_nofin = retired - 1
 module testbench;
   reg          clk;
   reg          reset;
@@ -40,15 +42,16 @@ module testbench;
   localparam [31:0] HALT       = 32'h0000006F;
   localparam integer MAX_CYCLES = 100000;
 
-  integer cycles, retired, stall_cycles, flush_cycles;
+  integer cycles, retired, stall_cycles, flush_cycles, last_ret;
   integer i;
   reg     done;
   real    ipc, cpi;
 
   wire [31:0] iw0 = dut.rvsingle.InstrW;
+  wire [31:0] iw1 = 32'b0;   // no hay via 1 (lo usa el verificador comun tests/prof_programa_check.v)
 
   initial begin
-    cycles = 0; retired = 0; stall_cycles = 0; flush_cycles = 0;
+    cycles = 0; retired = 0; stall_cycles = 0; flush_cycles = 0; last_ret = 0;
     done = 0;
     if ($test$plusargs("vcd")) begin
       $dumpfile("build/wave.vcd");
@@ -65,12 +68,14 @@ module testbench;
       if (timed_out) $display("STATUS TIMEOUT"); else $display("STATUS OK");
       for (i = 0; i < 32; i = i + 1)
         $display("x%0d = %h", i, dut.rvsingle.dp.rf.rf[i]);
-      for (i = 0; i < 64; i = i + 1)
+      for (i = 0; i < 1024; i = i + 1)
         if (dut.dmem.RAM[i] !== 32'b0) $display("mem[%0d] = %h", i, dut.dmem.RAM[i]);
       $display("METRIC cycles = %0d", cycles);
       $display("METRIC retired = %0d", retired);
       $display("METRIC ipc = %f", ipc);
       $display("METRIC cpi = %f", cpi);
+      $display("METRIC cycles_nofin = %0d", last_ret);
+      $display("METRIC retired_nofin = %0d", retired - 1);
       $display("METRIC dual_retire_cycles = 0");
       $display("METRIC stall_cycles = %0d", stall_cycles);
       $display("METRIC flush_cycles = %0d", flush_cycles);
@@ -84,6 +89,7 @@ module testbench;
     if (!reset && !done) begin
       cycles = cycles + 1;
       if (iw0 != 32'b0) retired = retired + 1;
+      if ((iw0 != 32'b0) && (iw0 != HALT)) last_ret = cycles;
       if (dut.rvsingle.StallD) stall_cycles = stall_cycles + 1;   // load-use
       if (dut.rvsingle.FlushD) flush_cycles = flush_cycles + 1;   // branch tomado
       if (iw0 == HALT) begin

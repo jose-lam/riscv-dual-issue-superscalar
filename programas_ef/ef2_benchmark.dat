@@ -1,0 +1,50 @@
+10000513 // 00: addi x10, x0, 256
+00c00593 // 04: addi x11, x0, 12
+00000613 // 08: addi x12, x0, 0
+00500693 // 0c: addi x13, x0, 5
+00d00713 // 10: addi x14, x0, 13
+00100293 // 14: addi x5,  x0, 1
+00768693 // 18: addi x13, x13, 7
+00e6a7b3 // 1c: slt  x15, x13, x14
+00578463 // 20: beq  x15, x5, GOK
+40e686b3 // 24: sub  x13, x13, x14
+00c60833 // 28: add  x16, x12, x12
+01080833 // 2c: add  x16, x16, x16
+00a80833 // 30: add  x16, x16, x10
+00d82023 // 34: sw   x13, 0(x16)
+00160613 // 38: addi x12, x12, 1
+00b627b3 // 3c: slt  x15, x12, x11
+fc578ce3 // 40: beq  x15, x5, GEN
+fff58a13 // 44: addi x20, x11, -1
+00050ab3 // 48: add  x21, x10, x0
+00000b13 // 4c: addi x22, x0, 0
+000aac03 // 50: lw   x24, 0(x21)
+004aac83 // 54: lw   x25, 4(x21)
+018cad33 // 58: slt  x26, x25, x24
+000d0663 // 5c: beq  x26, x0, NOSWAP
+019aa023 // 60: sw   x25, 0(x21)
+018aa223 // 64: sw   x24, 4(x21)
+004a8a93 // 68: addi x21, x21, 4
+001b0b13 // 6c: addi x22, x22, 1
+014b2d33 // 70: slt  x26, x22, x20
+fc5d0ee3 // 74: beq  x26, x5, INNER
+fffa0a13 // 78: addi x20, x20, -1
+01402d33 // 7c: slt  x26, x0, x20
+fc5d04e3 // 80: beq  x26, x5, OUTER
+00000613 // 84: addi x12, x0, 0
+00000d93 // 88: addi x27, x0, 0
+00000e13 // 8c: addi x28, x0, 0
+00050ab3 // 90: add  x21, x10, x0
+00600e93 // 94: addi x29, x0, 6
+000aac03 // 98: lw   x24, 0(x21)
+018d8db3 // 9c: add  x27, x27, x24
+018ead33 // a0: slt  x26, x29, x24
+000d0463 // a4: beq  x26, x0, SKIP
+001e0e13 // a8: addi x28, x28, 1
+004a8a93 // ac: addi x21, x21, 4
+00160613 // b0: addi x12, x12, 1
+00b62d33 // b4: slt  x26, x12, x11
+fe5d00e3 // b8: beq  x26, x5, STAT
+05b52023 // bc: sw   x27, 64(x10)
+05c52223 // c0: sw   x28, 68(x10)
+0000006f // c4: halt
