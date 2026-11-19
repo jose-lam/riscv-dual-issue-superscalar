@@ -5,8 +5,7 @@
 02_dual_issue/      B: Dual-Issue In-Order (E2): Issue Unit, dos vías, forwarding entre vías
 03_dual_issue_opt/  C: Dual-Issue + predictor de 2 bits con BTB en Fetch (EF)
   src/              Verilog (testbench.v es el top de simulación; btb.v solo existe en C)
-  tb/               Programas (.dat, formato $readmemh) con la instrucción fuente comentada
-programas_ef/       Programas de la EF, válidos para las tres arquitecturas: .asm, .dat, .exp (estado final
+  tb/               Programas (.dat, formato $readmemh) con la instrucción fuente comentada, Programas de la EF, válidos para las tres arquitecturas: .asm, .dat, .exp (estado final
                     esperado) y prof_programa_check.v (verificador de las etapas A–D del profesor)
 informe/            Informe final (PDF y Word) e informes de E1 (PDF) y E2 (Word)
 ```
@@ -15,7 +14,7 @@ ISA: `lw sw add sub and or slt addi andi ori slti beq jal`.
 
 ## Simulación en Vivado
 1. Crear un proyecto de simulación y agregar como *Simulation Sources* todos los `.v` de **una** carpeta `src/`
-   (A, B o C) y, para el programa del profesor, `programas_ef/prof_programa_check.v`.
+   (A, B o C) y, para el programa del profesor, `03_dual_issue_opt/tb/prof_programa_check.v`.
 2. Copiar el programa a ejecutar como `riscvtest.dat` en el directorio de simulación
    (`<proyecto>.sim/sim_1/behav/xsim/`); `imem` lo carga con `$readmemh`.
 3. Simulation Settings → top: `testbench` (y `prof_check` si se agregó el verificador). Ejecutar *Run All*.
