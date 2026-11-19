@@ -21,14 +21,14 @@ ISA: `lw sw add sub and or slt addi andi ori slti beq jal`.
 
 Por línea de comandos (carpeta de trabajo vacía, listando los `.v`, sin comodines):
 ```
-copy programas_ef\prof_programa.dat riscvtest.dat
-xvlog <cada .v de src\> programas_ef\prof_programa_check.v
+copy 03_dual_issue_opt\tb\prof_programa.dat riscvtest.dat
+xvlog <cada .v de src\> 03_dual_issue_opt\tb\prof_programa_check.v
 xelab testbench prof_check -s sim
 xsim sim -runall
 ```
 Sin verificador (cualquier otro programa): no compilar `prof_programa_check.v` y elaborar solo `testbench`.
-Con iverilog: `iverilog -g2012 -s testbench -s prof_check -o sim <src\*.v> programas_ef/prof_programa_check.v` y
-`vvp sim +prog=programas_ef/prof_programa.dat`.
+Con iverilog: `iverilog -g2012 -s testbench -s prof_check -o sim <src\*.v> 03_dual_issue_opt/tb/prof_programa_check.v` y
+`vvp sim +prog=03_dual_issue_opt/tb/prof_programa.dat`.
 
 ## Qué imprime el testbench
 Termina cuando `halt` (`jal x0,0` = `0x0000006F`) llega a Writeback. Imprime registros, memoria y métricas
@@ -45,9 +45,9 @@ crear antes la carpeta `build`. Con el verificador, la waveform incluye `chk_pul
 - Respecto a B cambian `datapath.v`, `hazard.v`, `riscvsingle.v` y `testbench.v`; `btb.v` es nuevo.
 
 ## Programas
-- `programas_ef/prof_programa`: programa del profesor (etapas A–D). El verificador compara x0–x31 y la memoria al
+- `03_dual_issue_opt/tb/prof_programa`: programa del profesor (etapas A–D). El verificador compara x0–x31 y la memoria al
   cierre de cada etapa e imprime `CHECK etapa X ciclo N: OK`.
-- `programas_ef/ef1_btb`: validación del BTB (entrenamiento, vía 0 y vía 1, recuperación tras fallo).
-- `programas_ef/ef2_benchmark`: programa propio de evaluación (genera, ordena con bubble sort y resume un arreglo).
+- `03_dual_issue_opt/tb/ef1_btb`: validación del BTB (entrenamiento, vía 0 y vía 1, recuperación tras fallo).
+- `03_dual_issue_opt/tb/ef2_benchmark`: programa propio de evaluación (genera, ordena con bubble sort y resume un arreglo).
 - `*/tb/programa*`: programas de E1 y E2 (ALU en pareja, forwarding, RAW, load-use, conflicto de memoria, branches,
   doble escritura).
